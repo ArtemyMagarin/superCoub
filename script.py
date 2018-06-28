@@ -1,5 +1,8 @@
 import requests
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
+from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
+from skimage.filter import gaussian_filter
+
 import datetime
 import string
 import random
@@ -15,6 +18,7 @@ def getFile(url):
         blob[1] = 0
     
     return (blob, getName(url[-3:]))
+
 
 def getName(ext):
     chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
@@ -64,13 +68,30 @@ def getVideo(id):
 
     return name
 
+def _blur(self, image):
+    """ Returns a blurred (radius=2 pixels) version of the image """
+    return gaussian_filter(image.astype(float), sigma=2)
+
+
+def normalize(v):
+    v1 = v.resize(height=720)
+
+    backVideo = v1.copy()
+    backVideo = backVideo.fl_image(_blur).resize(width=1280)
+
+    v = CompositeVideoClip(backVideo, v1.margin(3))
+    return v
+
+
 def concatAndSaveVideo(idArr):
     videoclips = []
     delNames = []
 
     for id in idArr:
         videoName = getVideo(id)
-        videoclips.append(VideoFileClip(videoName))
+        v = VideoFileClip(videoName)
+        v = normalize(v)
+        videoclips.append(v)
 
     name = getName('mp4')
 
@@ -83,7 +104,6 @@ def concatAndSaveVideo(idArr):
     return name
 
 def getPermalinksByCategory(url):
-    return ['1a6wfs', '1a62ck']
     r = requests.get('https://coub.com/api/v2/timeline/rising/'+url)
 
     permalinks = []
@@ -97,11 +117,9 @@ def main():
 
     print(concatAndSaveVideo(permalinks[0:4]))
 
+
 if __name__ == '__main__':
     main()
-
-
-
 
 # with open('file2.mp4', 'wb') as f:
 #     f.write(getVideo('kc0q'))

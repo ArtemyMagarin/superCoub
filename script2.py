@@ -17,7 +17,7 @@ class Coub:
     
     
     def _blur(self, image):
-    """ Returns a blurred (radius=2 pixels) version of the image """
+        """ Returns a blurred (radius=2 pixels) version of the image """
         return gaussian_filter(image.astype(float), sigma=2)
     
     def getVideo(self):
