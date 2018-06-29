@@ -1,11 +1,13 @@
+from os import remove
+import random
+import string
+import datetime
 import requests
+
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from skimage.filters import gaussian as gaussian_filter
-import datetime
-import string
-import random
-from os import remove
+
 
 def getFile(url):
     r = requests.get(url)
@@ -18,9 +20,9 @@ def getFile(url):
     return (blob, getName(url[-3:]))
 
 
-def getName(ext):
+def getName(ext, id=None):
     chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
-    randStr = ''.join(random.choice(chars) for _ in range(6))
+    randStr = ''.join(random.choice(chars) for _ in range(6)) if id==None else id
     res = '{day}_{month}_{year}_{hours}_{minutes}_{name}.{ext}'.format(
         name=randStr,
         day=datetime.datetime.today().day,
@@ -59,7 +61,9 @@ def getVideo(id):
     videoclip = VideoFileClip(videoName)
     audioclip = AudioFileClip(audioName)
 
+    videoclip = normalize(videoclip)
     videoclip = videoclip.set_audio(audioclip.subclip(0, videoclip.duration))
+
     garbage.append(videoName)
     garbage.append(audioName)
 
@@ -90,9 +94,11 @@ def normalize(v):
             nh = 720*1280/nw
             nw = 1280
         v = v.set_pos('center').resize(width=nw, height=nh)
-        v = CompositeVideoClip([backVideo, v], size=(1280, 720))
 
-
+        if h/w < 1:
+            v = CompositeVideoClip([backVideo, v], size=(1280, 720))
+        else:
+            v = CompositeVideoClip([v,], size=(1280, 720))
     else:
         v = v.set_pos('center').resize(width=w*(720/h), height=h*(720/h))
     return v
@@ -105,17 +111,10 @@ def concatAndSaveVideo(idArr):
     for id in idArr:
         video = getVideo(id)
         if video:
-            v = normalize(video)
-            videoclips.append(v)
+            video.write_videofile(getName('mp4', id))
         else:
             print('https://coub.com/view/'+id)
 
-    name = getName('mp4')
-
-    final_clip = concatenate_videoclips(videoclips)
-    final_clip.write_videofile(name)
-
-    return name
 
 def getPermalinksByCategory(url):
     r = requests.get('https://coub.com/api/v2/timeline/hot/'+url)
@@ -129,8 +128,10 @@ def getPermalinksByCategory(url):
 
 
 def main():
-    permalinks = getPermalinksByCategory('animals-pets')
-    concatAndSaveVideo(permalinks)
+    permalinks = getPermalinksByCategory('')
+    for i in range(2, 6):
+        permalinks+=getPermalinksByCategory('quarter?page='+str(i))
+    concatAndSaveVideo(permalinks[:5])
     
 
 if __name__ == '__main__':
@@ -139,3 +140,4 @@ if __name__ == '__main__':
     for i in garbage:
         remove(i)
 
+# ffmpeg -f concat -safe 0 -i <(for f in *mp4; do echo "file '$PWD/$f'"; done) -c copy output.mp4
