@@ -2,12 +2,10 @@ import requests
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from skimage.filters import gaussian as gaussian_filter
-
 import datetime
 import string
 import random
 from os import remove
-import re
 
 def getFile(url):
     r = requests.get(url)
@@ -46,8 +44,11 @@ def getVideo(id):
     r = requests.get(url)
     data = r.json()["file_versions"]["html5"]
 
-    videoUrl = data["video"]["high"]["url"] if 'high' in data["video"] else data["video"]["med"]["url"]
-    audioUrl = data["audio"]["high"]["url"] if 'high' in data["audio"] else data["audio"]["med"]["url"]
+    try:
+        videoUrl = data["video"]["high"]["url"] if 'high' in data["video"] else data["video"]["med"]["url"]
+        audioUrl = data["audio"]["high"]["url"] if 'high' in data["audio"] else data["audio"]["med"]["url"]
+    except KeyError:
+        return False
 
     video, videoName = getFile(videoUrl)
     audio, audioName = getFile(audioUrl)
@@ -72,19 +73,28 @@ def _blur(image):
 def normalize(v):
 
     w, h = v.size
-
+    
     if w==1280 and h==720:
-        return v  
+        return v 
 
-    if not (1280/w==1280//w) and not (720/h==720//h):
+    if not (1280/w==1280//w and 720/h==720//h):
         backVideo = v.copy()
         backVideo = backVideo.fl_image(_blur)
+
         backVideo = backVideo.resize(width=1280, height=h*1280/w)
-        v = v.set_pos('center').resize(width=w*(720/h), height=h*(720/h))
+
+        nw = w*(720/h)
+        nh = 720
+
+        if nw > 1280:
+            nh = 720*1280/nw
+            nw = 1280
+        v = v.set_pos('center').resize(width=nw, height=nh)
         v = CompositeVideoClip([backVideo, v], size=(1280, 720))
+
+
     else:
         v = v.set_pos('center').resize(width=w*(720/h), height=h*(720/h))
-
     return v
 
 
@@ -94,8 +104,11 @@ def concatAndSaveVideo(idArr):
 
     for id in idArr:
         video = getVideo(id)
-        v = normalize(video)
-        videoclips.append(v)
+        if video:
+            v = normalize(video)
+            videoclips.append(v)
+        else:
+            print('https://coub.com/view/'+id)
 
     name = getName('mp4')
 
@@ -105,30 +118,24 @@ def concatAndSaveVideo(idArr):
     return name
 
 def getPermalinksByCategory(url):
-    r = requests.get('https://coub.com/api/v2/timeline/rising/'+url)
+    r = requests.get('https://coub.com/api/v2/timeline/hot/'+url)
 
     permalinks = []
     for i in r.json()['coubs']:
         permalinks.append(i['permalink'])
+
+
     return permalinks
 
 
 def main():
     permalinks = getPermalinksByCategory('animals-pets')
-    garbage = []
     concatAndSaveVideo(permalinks)
+    
+
+if __name__ == '__main__':
+    garbage = []
+    main()
     for i in garbage:
         remove(i)
 
-if __name__ == '__main__':
-    main()
-
-# with open('file2.mp4', 'wb') as f:
-#     f.write(getVideo('kc0q'))
-
-
-# clip1 = VideoFileClip("file1.mp4")
-# clip2 = VideoFileClip("file2.mp4")
-
-# final_clip = concatenate_videoclips([clip1,clip2])
-# final_clip.write_videofile("my_concatenation.mp4")
