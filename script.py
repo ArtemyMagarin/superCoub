@@ -1,7 +1,8 @@
 import requests
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
-from skimage.filter import gaussian_filter
+# from skimage.filter import gaussian_filter
+from skimage.filters import gaussian as gaussian_filter
 
 import datetime
 import string
@@ -35,9 +36,11 @@ def getName(ext):
 
     return res
 
+
 def saveBinaryFile(name, file):
     with open(name, 'wb') as f:
         f.write(file)
+
 
 def getVideo(id):
     url="http://coub.com/api/v2/coubs/"+str(id)
@@ -60,26 +63,33 @@ def getVideo(id):
 
     audioclip = audioclip.subclip(0, videoclip.duration)
     videoclip = videoclip.set_audio(audioclip)
+    print(videoclip.audio)
+    # videoclip.
+    return videoclip
 
-    videoclip.write_videofile(name)
+    # videoclip.write_videofile(name)
 
-    remove(videoName)
-    remove(audioName)
+    # remove(videoName)
+    # remove(audioName)
 
     return name
 
-def _blur(self, image):
+def _blur(image):
     """ Returns a blurred (radius=2 pixels) version of the image """
-    return gaussian_filter(image.astype(float), sigma=2)
+    return gaussian_filter(image.astype(float), sigma=8)
 
 
 def normalize(v):
-    v1 = v.resize(height=720)
 
-    backVideo = v1.copy()
-    backVideo = backVideo.fl_image(_blur).resize(width=1280)
 
-    v = CompositeVideoClip(backVideo, v1.margin(3))
+    backVideo = v.copy()
+    backVideo = backVideo.fl_image(_blur).resize(width=1280, height=720)
+
+    w, h = v.size
+
+
+    v = v.set_pos('center').resize(width=w*(720/h), height=h*(720/h))
+    v = CompositeVideoClip([backVideo, v], size=(1280, 720))
     return v
 
 
@@ -87,10 +97,10 @@ def concatAndSaveVideo(idArr):
     videoclips = []
     delNames = []
 
-    for id in idArr:
-        videoName = getVideo(id)
-        v = VideoFileClip(videoName)
-        v = normalize(v)
+    for id in idArr[:3]:
+        video = getVideo(id)
+        # v = VideoFileClip(videoName)
+        v = normalize(video)
         videoclips.append(v)
 
     name = getName('mp4')
@@ -98,8 +108,8 @@ def concatAndSaveVideo(idArr):
     final_clip = concatenate_videoclips(videoclips)
     final_clip.write_videofile(name)
 
-    # for i in delNames:
-    #     remove(i)
+    for i in delNames:
+        remove(i)
 
     return name
 
