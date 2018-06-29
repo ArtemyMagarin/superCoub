@@ -1,7 +1,6 @@
 import requests
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
-# from skimage.filter import gaussian_filter
 from skimage.filters import gaussian as gaussian_filter
 
 import datetime
@@ -58,21 +57,12 @@ def getVideo(id):
 
     videoclip = VideoFileClip(videoName)
     audioclip = AudioFileClip(audioName)
-    
-    name = getName('mp4')
 
-    audioclip = audioclip.subclip(0, videoclip.duration)
-    videoclip = videoclip.set_audio(audioclip)
-    print(videoclip.audio)
-    # videoclip.
+    videoclip = videoclip.set_audio(audioclip.subclip(0, videoclip.duration))
+    garbage.append(videoName)
+    garbage.append(audioName)
+
     return videoclip
-
-    # videoclip.write_videofile(name)
-
-    # remove(videoName)
-    # remove(audioName)
-
-    return name
 
 def _blur(image):
     """ Returns a blurred (radius=2 pixels) version of the image """
@@ -83,12 +73,18 @@ def normalize(v):
 
     w, h = v.size
 
-    backVideo = v.copy()
-    backVideo = backVideo.fl_image(_blur).resize(width=1280, height=720)
+    if w==1280 and h==720:
+        return v  
 
+    if not (1280/w==1280//w) and not (720/h==720//h):
+        backVideo = v.copy()
+        backVideo = backVideo.fl_image(_blur)
+        backVideo = backVideo.resize(width=1280, height=h*1280/w)
+        v = v.set_pos('center').resize(width=w*(720/h), height=h*(720/h))
+        v = CompositeVideoClip([backVideo, v], size=(1280, 720))
+    else:
+        v = v.set_pos('center').resize(width=w*(720/h), height=h*(720/h))
 
-    v = v.set_pos('center').resize(width=w*(720/h), height=h*(720/h))
-    v = CompositeVideoClip([backVideo, v], size=(1280, 720))
     return v
 
 
@@ -96,9 +92,8 @@ def concatAndSaveVideo(idArr):
     videoclips = []
     delNames = []
 
-    for id in idArr[:3]:
+    for id in idArr:
         video = getVideo(id)
-        # v = VideoFileClip(videoName)
         v = normalize(video)
         videoclips.append(v)
 
@@ -106,9 +101,6 @@ def concatAndSaveVideo(idArr):
 
     final_clip = concatenate_videoclips(videoclips)
     final_clip.write_videofile(name)
-
-    for i in delNames:
-        remove(i)
 
     return name
 
@@ -123,9 +115,10 @@ def getPermalinksByCategory(url):
 
 def main():
     permalinks = getPermalinksByCategory('animals-pets')
-
-    print(concatAndSaveVideo(permalinks[0:4]))
-
+    garbage = []
+    concatAndSaveVideo(permalinks)
+    for i in garbage:
+        remove(i)
 
 if __name__ == '__main__':
     main()
