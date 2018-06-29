@@ -81,11 +81,10 @@ def _blur(image):
 
 def normalize(v):
 
+    w, h = v.size
 
     backVideo = v.copy()
     backVideo = backVideo.fl_image(_blur).resize(width=1280, height=720)
-
-    w, h = v.size
 
 
     v = v.set_pos('center').resize(width=w*(720/h), height=h*(720/h))
