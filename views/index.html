@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Coub API</title>
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+</head>
+<style>
+	body {
+		margin: 0;
+		padding: 0;
+		height: 100%;
+		font-family: 'Roboto Condensed', sans-serif;
+	}
+
+	h1, h2, h3, h4, h5 {
+		margin: 0;
+	}
+
+	.body, .header {
+		max-width: 900px;
+		margin: 0 auto;
+		padding: 30px;
+		padding-top: 10px;
+	}
+
+	.body {
+		padding-top: 0;
+	}
+</style>
+<body>
+	<div class="header">
+		<h1>Custom Coub API</h1>
+	</div>
+	<div class="body">
+		<h2>USAGE</h2>
+		<ol>
+			<li style="margin-bottom: 170px;">
+				<p>To get results, do</p>
+				<p><code>GET /hot/&lt;category&gt;/</code></p>
+				<p> where category may be:</p>
+				<ul style="list-style-type: none;">
+					<li style="float:left;">
+						<ul style="list-style-type: circle;">
+							<li><code>all</code></li>
+							<li><code>animals-pets</code></li>
+							<li><code>mashup</code></li>
+							<li><code>anime</code></li>
+							<li><code>movies</code></li>
+							<li><code>gaming</code></li>
+						</ul>
+					</li>
+
+					<li style="float:left;">
+						<ul style="list-style-type: circle;">
+							<li><code>cartoons</code></li>
+							<li><code>art</code></li>
+							<li><code>music</code></li>
+							<li><code>news</code></li>
+							<li><code>sports</code></li>
+							<li><code>science-technology</code></li>
+						</ul>
+					</li>
+					
+					<li style="float:left;">
+						<ul style="list-style-type: circle;">
+							<li><code>celebrity</code></li>
+							<li><code>nature-travel</code></li>
+							<li><code>fashion</code></li>
+							<li><code>dance</code></li>
+							<li><code>cars</code></li>
+							<li><code>nsfw</code></li>
+						</ul>
+					</li>
+					
+				</ul>
+			</li>
+			<li style="clear: both;">
+				<p>You also can filter results by <code>count</code>, <code>duration</code> and <code>period</code></p> 
+				<p><code>GET /hot/all/?duration=228&period=weekly</code></p>
+				<p>where </p>
+				<ul>
+					<li><code>count</code> is how many videos you will receive. It must be an integer value</li>
+					<li><code>duration</code> is how much time (in seconds) the final video will long. It must be an integer value. Default value is <code>610</code></li>
+					<li><code>period</code> is the period of which selection is made. May be <code>weekly</code>,
+					<code>monthly</code>,
+					<code>quarter</code> or
+					<code>half</code>. Empty value is <i>daily</i> as default.</li>
+				</ul>
+				<p><b>NOTE</b>: In case if you set <code>count</code> and <code>duration</code>, only <code>duration</code> will use.</p>
+			</li>
+			<li>
+				<h4>Output</h4>
+				<p><code>GET /hot/all</code> request returns json output:</p>
+				<pre><code>{
+	"permalinks": [
+		"19sdgg", "1a4cpi", "1a4r4m", "1a56xv", "1aacnh", "1a4qhr", 
+		"19ydr6", "1a9oon", "19yx46", "1a84o3", "19h5cm", "19qf7y", 
+		"1a328z", "1a7k63", "1a810d", "1a6q7i", "19p3j0", "19k755", 
+		"1a1z4l", "1a6qns", "1a6b8y", "19yujp", "19x281", "1a65pz", 
+		"197n12", "1a7diq", "1a7j86", "19p2aq", "19wmea", "19wxbq", 
+		"1a5ajy", "1a4rra", "1a2oht", "1a9lqa", "19p6co", "19ynxz", 
+		"19een6", "1a7eke", "1a4fsh", "1a5m2u", "19z38e", "1a407a", 
+		"1a1pr3", "1a7atp", "18qik5", "19qerm", "8uwpl", "1a2rkn", 
+		"19wkxg", "189wy3", "1a11d6", "18pyxk", "19w2f2", "1a53u5", 
+		"1a78sk", "1a6jdh", "1a3pvf", "1a62f5", "1a35r5", "19o65g", 
+		"19uhun", "19sxcs", "19oav6", "19bhvy", "1a5kgc", "1a1lck",
+		"19wsjk",
+	], 
+	 "duration": 613, 
+	 "count": 67, 
+	 "period": "", 
+	 "category": "all"
+}
+				</code></pre>
+			</li>
+		</ol>
+
+	</div>
+	
+	
+</body>
+</html>
