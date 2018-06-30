@@ -129,9 +129,9 @@ def getPermalinksByCategory(url):
 
 def main():
     permalinks = getPermalinksByCategory('')
-    for i in range(2, 6):
-        permalinks+=getPermalinksByCategory('quarter?page='+str(i))
-    concatAndSaveVideo(permalinks[:5])
+    for i in range(2, 8):
+        permalinks+=getPermalinksByCategory('?page='+str(i))
+    concatAndSaveVideo(permalinks)
     
 
 if __name__ == '__main__':
