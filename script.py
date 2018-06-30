@@ -95,7 +95,7 @@ def normalize(v):
             nw = 1280
         v = v.set_pos('center').resize(width=nw, height=nh)
 
-        if h/w < 1:
+        if h/w > 1:
             v = CompositeVideoClip([backVideo, v], size=(1280, 720))
         else:
             v = CompositeVideoClip([v,], size=(1280, 720))
