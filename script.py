@@ -128,7 +128,7 @@ def getPermalinksByCategory(url):
 
 
 def main():
-    permalinks = getPermalinksByCategory('')
+    permalinks = requests.get('http://localhost:8000/hot/all').json()['permalinks']
     for i in range(2, 6):
         permalinks+=getPermalinksByCategory('quarter?page='+str(i))
     concatAndSaveVideo(permalinks[:5])
