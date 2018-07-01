@@ -128,8 +128,8 @@ def getPermalinksByCategory(url):
 
 
 def main():
-    r = requests.get('http://localhost:8000/hot/all').json()
-    print('i going to work with', r['count'],'videos, duration =', r['duration'] )
+    r = requests.get('http://localhost:8000/hot/all?period=weekly').json()
+    print('>>> I going to work with', r['count'],'videos, duration =', r['duration'],'\n\n' )
 
     permalinks = r['permalinks']
     concatAndSaveVideo(permalinks)
