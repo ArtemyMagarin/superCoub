@@ -128,7 +128,7 @@ def getPermalinksByCategory(url):
 
 
 def main():
-    r = requests.get('http://localhost:8000/hot/all?period=weekly').json()
+    r = requests.get('http://localhost:8000/hot/all?proxy=132.148.150.41:80').json()
     print('>>> I going to work with', r['count'],'videos, duration =', r['duration'],'\n\n' )
 
     permalinks = r['permalinks']

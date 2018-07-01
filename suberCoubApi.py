@@ -4,14 +4,18 @@ from json import dumps
 
 from bottle import run
 
-def getByDuration(req, duration):
+def getByDuration(req, duration, proxies):
     page = 1
     per_page = 25
     curr_duration = 0
     permalinks = []
 
     while curr_duration < duration:
-        r = requests.get(req, data={ 'page': page, 'per_page': per_page }, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'})
+        if proxies:
+            r = requests.get(req, data={ 'page': page, 'per_page': per_page }, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'}, proxies=proxies)
+        else:
+            r = requests.get(req, data={ 'page': page, 'per_page': per_page }, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'})
+        
         for v in r.json()['coubs']:
             if v['duration'] > 2.5:
                 permalinks.append(v['permalink'])
@@ -27,14 +31,23 @@ def getByDuration(req, duration):
         }
 
 
-def getByCount(req, count):
+def getByCount(req, count, proxies):
     page = 1
     per_page = 25
     curr_duration = 0
     data = []
 
     while 1:
-        r = requests.get(req, data={ 'page': page, 'per_page': per_page },  headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'})
+        if proxies:
+            r = requests.get(req, data={ 'page': page, 'per_page': per_page },  
+                headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'},
+                proxies=proxies)
+        
+        else:
+            r = requests.get(req, data={ 'page': page, 'per_page': per_page },  
+                headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'})
+        
+
         for v in r.json()['coubs']:
             if v['duration'] > 3.5:
                 data.append(v['permalink'])
@@ -52,7 +65,7 @@ def getByCount(req, count):
 
 
 
-def getData(category, duration, count, period):
+def getData(category, duration, count, period, proxies):
     req = 'http://coub.com/api/v2/timeline/hot/'
 
     if category != 'all':
@@ -68,13 +81,13 @@ def getData(category, duration, count, period):
         duration = 610
 
     if duration:
-        data = getByDuration(req, float(duration))
+        data = getByDuration(req, float(duration), proxies)
         data['period'] = period
         data['category'] = category
         return data
 
     if count:
-        data = getByCount(req, int(count))
+        data = getByCount(req, int(count), proxies)
         data['period'] = period
         data['category'] = category
         return data
@@ -93,7 +106,15 @@ def getHot(category):
     count = request.query.count
     period = request.query.period
 
-    data = getData(category, duration, count, period)
+    proxies = ""
+
+    praddress = request.query.proxy
+    if praddress:
+        proxies = {
+            'http': 'http://'+praddress,
+        }   
+
+    data = getData(category, duration, count, period, proxies)
     return dumps(data)
 
 
