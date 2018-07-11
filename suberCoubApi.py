@@ -1,8 +1,29 @@
 from bottle import default_app, route, request, response, redirect, template
 import requests
+import pickle
 from json import dumps
 
 from bottle import run
+
+def video_is_exist(permalink):
+
+    try:
+        with open ('history.pickle', 'rb') as f:
+            data = pickle.load(f)
+    except Exception:
+        return False
+
+    return permalink in data
+
+def add_video_into_history(permalink):
+    with open ('history.pickle', 'rb') as f:
+        data = pickle.load(f)
+
+    data.append(permalink)
+
+    with open('history.pickle', 'wb') as f:
+        pickle.dump(data, f)
+
 
 def getByDuration(req, duration, proxies):
     page = 1
@@ -17,12 +38,13 @@ def getByDuration(req, duration, proxies):
             r = requests.get(req, data={ 'page': page, 'per_page': per_page }, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'})
         
         for v in r.json()['coubs']:
-            if v['duration'] > 2.5:
+            if v['duration'] > 3.5 and not video_is_exist(v['permalink']):
                 permalinks.append(v['permalink'])
+                add_video_into_history(v['permalink'])
                 curr_duration+=v['duration']
                 if curr_duration >= duration:
                     break
-        page+=1
+        page += 1
 
     return {
             'permalinks': permalinks,
@@ -46,11 +68,11 @@ def getByCount(req, count, proxies):
         else:
             r = requests.get(req, data={ 'page': page, 'per_page': per_page },  
                 headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'})
-        
 
         for v in r.json()['coubs']:
-            if v['duration'] > 3.5:
+            if v['duration'] > 3.5 and not video_is_exist(v['permalink']):
                 data.append(v['permalink'])
+                add_video_into_history(v['permalink'])
                 curr_duration+=v['duration']
                 if len(data)>=count:
                     return {
